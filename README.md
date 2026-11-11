@@ -136,4 +136,5 @@ Vite 8 · React 19 · TypeScript · Tailwind CSS 4 · React Router 7 · Firebase
 - Urdu text-to-speech depends on the device having an Urdu voice; otherwise it reads the English version.
 - With `VITE_AI_PROVIDER=genai`, the API key is in the client bundle — demo only. Use Firebase AI Logic + App Check for anything public.
 - Urdu PDFs use the browser's print-to-PDF (jsPDF can't shape Nastaliq).
+- **Free-tier quota:** Gemini Developer API free tier is small (observed: 5 requests/min and 20/day per model for `gemini-3.8-flash`). `ai.ts` automatically falls back through `VITE_GEMINI_FALLBACK_MODELS` on 429s; for a live demo, upgrade the Firebase project to the Blaze plan.
 - No human review loop or escalation to real caseworkers yet.
