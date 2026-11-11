@@ -100,7 +100,9 @@ VITE_GEMINI_MODEL=gemini-3.8-flash
 1. Create a Firebase project → add a Web app → copy config into `.env`.
 2. Console → **AI Logic** → Get started → choose **Gemini Developer API**.
 3. Console → **Firestore** → create database. Deploy rules: `npx firebase-tools deploy --only firestore:rules`.
-4. (Recommended) Enable **App Check** for AI Logic and Firestore before sharing the URL publicly.
+4. **App Check:** if enforcement is ON for AI Logic, either turn it off for the demo, or register a reCAPTCHA Enterprise key in App Check and set `VITE_RECAPTCHA_ENTERPRISE_SITE_KEY` (localhost also needs a registered debug token).
+
+The Firebase web config is committed in `.env.production` / `.env.development`. It is public by design; access is controlled by `firestore.rules` and App Check.
 
 ### Deploy
 

@@ -1,4 +1,5 @@
 import { initializeApp, type FirebaseApp } from "firebase/app";
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
 
 const env = import.meta.env;
 
@@ -16,6 +17,16 @@ export const isFirebaseConfigured = Boolean(firebaseConfig.apiKey && firebaseCon
 let app: FirebaseApp | null = null;
 export function getFirebaseApp(): FirebaseApp | null {
   if (!isFirebaseConfigured) return null;
-  if (!app) app = initializeApp(firebaseConfig);
+  if (!app) {
+    app = initializeApp(firebaseConfig);
+    // App Check (optional): set VITE_RECAPTCHA_ENTERPRISE_SITE_KEY to send App Check tokens.
+    // Needed only if App Check enforcement is ON for AI Logic / Firestore in the Firebase console.
+    const siteKey = env.VITE_RECAPTCHA_ENTERPRISE_SITE_KEY;
+    if (siteKey) {
+      // For localhost testing, register the debug token printed in the console under App Check → Manage debug tokens.
+      if (location.hostname === "localhost") (self as unknown as { FIREBASE_APPCHECK_DEBUG_TOKEN: boolean }).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+      initializeAppCheck(app, { provider: new ReCaptchaEnterpriseProvider(siteKey), isTokenAutoRefreshEnabled: true });
+    }
+  }
   return app;
 }
