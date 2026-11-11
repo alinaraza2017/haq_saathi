@@ -1,0 +1,19 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Anonymous, opt-in research stats. Only 4 fields, no free text, no identifiers.
+    match /stats/{id} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasOnly(['category', 'city', 'urgency', 'timestamp'])
+        && request.resource.data.keys().hasAll(['category', 'city', 'urgency', 'timestamp'])
+        && request.resource.data.category is string && request.resource.data.category.size() < 40
+        && request.resource.data.city is string && request.resource.data.city.size() < 40
+        && request.resource.data.urgency in ['emergency', 'high', 'normal']
+        && request.resource.data.timestamp == request.time;
+      allow update, delete: if false;
+    }
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

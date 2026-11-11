@@ -1,0 +1,68 @@
+[
+  {
+    "id": "police",
+    "number": "15",
+    "tel": "15",
+    "name_en": "Police Emergency",
+    "name_ur": "پولیس ایمرجنسی",
+    "desc_en": "Immediate danger, violence or threats to life.",
+    "desc_ur": "فوری خطرہ، تشدد یا جان کو خطرہ۔",
+    "hours": "24/7",
+    "emergency": true
+  },
+  {
+    "id": "mohr",
+    "number": "1099",
+    "tel": "1099",
+    "name_en": "MoHR Legal Advice Helpline",
+    "name_ur": "وزارتِ انسانی حقوق قانونی مشاورت ہیلپ لائن",
+    "desc_en": "Free legal advice on human rights, violence against women and family matters.",
+    "desc_ur": "انسانی حقوق، خواتین پر تشدد اور خاندانی معاملات پر مفت قانونی مشورہ۔",
+    "hours": "Check timings",
+    "emergency": true
+  },
+  {
+    "id": "punjab-women",
+    "number": "1043",
+    "tel": "1043",
+    "name_en": "Punjab Women Helpline",
+    "name_ur": "پنجاب ویمن ہیلپ لائن",
+    "desc_en": "Guidance, referrals and protection support for women in Punjab.",
+    "desc_ur": "پنجاب میں خواتین کے لیے رہنمائی، ریفرل اور تحفظ۔",
+    "hours": "24/7",
+    "emergency": false
+  },
+  {
+    "id": "fospah",
+    "number": "051-9264444",
+    "tel": "+92519264444",
+    "name_en": "Federal Ombudsperson for Protection against Harassment (FOSPAH)",
+    "name_ur": "وفاقی محتسب برائے انسدادِ ہراسانی (فوسپاہ)",
+    "desc_en": "Workplace harassment complaints and women's property rights (ICT).",
+    "desc_ur": "کام کی جگہ پر ہراسانی کی شکایات اور خواتین کے حقِ جائیداد (اسلام آباد)۔",
+    "hours": "Office hours",
+    "emergency": false
+  },
+  {
+    "id": "drf",
+    "number": "0800-39393",
+    "tel": "080039393",
+    "name_en": "Digital Rights Foundation Cyber Harassment Helpline",
+    "name_ur": "ڈیجیٹل رائٹس فاؤنڈیشن سائبر ہراسانی ہیلپ لائن",
+    "desc_en": "Toll-free help with online harassment, blackmail and leaked images.",
+    "desc_ur": "آن لائن ہراسانی، بلیک میلنگ اور تصاویر لیک ہونے پر مفت مدد۔",
+    "hours": "Check timings",
+    "emergency": false
+  },
+  {
+    "id": "rescue",
+    "number": "1122",
+    "tel": "1122",
+    "name_en": "Rescue 1122 (Ambulance / Emergency)",
+    "name_ur": "ریسکیو 1122 (ایمبولینس / ایمرجنسی)",
+    "desc_en": "Medical emergencies and injuries.",
+    "desc_ur": "طبی ایمرجنسی اور چوٹ۔",
+    "hours": "24/7",
+    "emergency": false
+  }
+]

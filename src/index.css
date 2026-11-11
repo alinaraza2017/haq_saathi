@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+@theme {
+  --color-teal-950: #082f2f;
+  --color-teal-900: #0b3d3d;
+  --color-teal-800: #0f4c4c;
+  --color-teal-700: #146262;
+  --color-teal-600: #1b7a78;
+  --color-teal-100: #d6ece9;
+  --color-teal-50: #eaf5f3;
+  --color-cream: #f7f1e3;
+  --color-cream-dark: #efe5cf;
+  --color-sand: #e8d9b5;
+  --color-ink: #1d2b2b;
+  --color-coral: #c8553d;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-urdu: "Noto Nastaliq Urdu", "Jameel Noori Nastaleeq", serif;
+}
+
+html,
+body {
+  background: var(--color-cream);
+  color: var(--color-ink);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Nastaliq needs generous line-height or ascenders/descenders collide */
+:lang(ur),
+[dir="rtl"] body,
+.urdu {
+  font-family: var(--font-urdu);
+  line-height: 2.1;
+}
+.urdu-tight {
+  line-height: 1.8;
+}
+.latin {
+  font-family: var(--font-sans);
+  line-height: 1.5;
+}
+
+@utility card {
+  @apply rounded-3xl bg-white/90 p-5 shadow-[0_2px_12px_rgba(11,61,61,0.08)] ring-1 ring-teal-900/5;
+}
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold transition active:scale-[0.98] disabled:opacity-50;
+}
+@utility btn-primary {
+  @apply btn bg-teal-800 text-cream hover:bg-teal-700;
+}
+@utility btn-ghost {
+  @apply btn bg-teal-50 text-teal-900 hover:bg-teal-100;
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+.pulse-ring::before,
+.pulse-ring::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: var(--color-coral);
+  animation: pulse-ring 1.6s ease-out infinite;
+  z-index: -1;
+}
+.pulse-ring::after { animation-delay: 0.8s; }
+
+@media print {
+  body * { visibility: hidden; }
+  .print-area, .print-area * { visibility: visible; }
+  .print-area { position: absolute; inset: 0; padding: 2cm; white-space: pre-wrap; font-size: 12pt; }
+}
