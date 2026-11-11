@@ -6,13 +6,22 @@ import { followUp } from "../services/legal";
 import { redact } from "../lib/redact";
 import type { ChatMsg } from "../lib/types";
 
+/** Minimal, safe markdown: **bold** only (no HTML injection — renders React nodes). */
+function renderText(text: string) {
+  return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
+    part.startsWith("**") && part.endsWith("**") ? <strong key={i}>{part.slice(2, -2)}</strong> : part,
+  );
+}
+
 export default function Chat() {
   const { t, lang } = useLang();
   const { state, update } = useCase();
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const end = useRef<HTMLDivElement>(null);
-  useEffect(() => end.current?.scrollIntoView({ behavior: "smooth" }), [state.chat.length, busy]);
+  useEffect(() => {
+    end.current?.scrollIntoView({ behavior: "smooth" });
+  }, [state.chat.length, busy]);
   const a = state.analysis;
   if (!a) return <Navigate to="/" replace />;
 
@@ -61,7 +70,7 @@ export default function Chat() {
               m.role === "user" ? "ms-auto bg-teal-800 text-cream" : "me-auto bg-white shadow-sm ring-1 ring-teal-900/5"
             }`}
           >
-            {m.text}
+            {renderText(m.text)}
           </div>
         ))}
         {busy && <div className="me-auto rounded-3xl bg-white px-4 py-3 text-teal-800/70 shadow-sm">{t("thinking")}</div>}
