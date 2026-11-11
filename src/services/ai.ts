@@ -8,9 +8,9 @@
  */
 import { getFirebaseApp, isFirebaseConfigured } from "./firebase";
 
-export const MODEL = import.meta.env.VITE_GEMINI_MODEL || "gemini-3.8-flash";
+export const MODEL = import.meta.env.VITE_GEMINI_MODEL || "gemini-3.6-flash";
 /** Tried in order when the previous model is rate-limited (each model has its own free-tier quota). */
-export const FALLBACK_MODELS: string[] = (import.meta.env.VITE_GEMINI_FALLBACK_MODELS || "gemini-3.6-flash,gemini-3.5-flash-lite")
+export const FALLBACK_MODELS: string[] = (import.meta.env.VITE_GEMINI_FALLBACK_MODELS || "gemini-3.5-flash-lite,gemini-3.8-flash")
   .split(",")
   .map((m: string) => m.trim())
   .filter(Boolean);
@@ -37,24 +37,44 @@ export function isAIConfigured(): boolean {
 
 export async function generate(opts: GenerateOptions): Promise<string> {
   if (!isAIConfigured()) throw new Error(`AI provider "${PROVIDER}" is not configured`);
-  const models = [MODEL, ...FALLBACK_MODELS.filter((m) => m !== MODEL)];
+  const all = [MODEL, ...FALLBACK_MODELS.filter((m) => m !== MODEL)];
+  // Skip models that failed recently (unless every model is cooling down).
+  const healthy = all.filter((m) => (cooldownUntil.get(m) ?? 0) < Date.now());
+  const models = healthy.length ? healthy : all;
+  const hasAudio = opts.contents.some((c) => c.parts.some((p) => "inlineData" in p));
+  const timeoutMs = hasAudio ? 35_000 : 25_000;
   let lastErr: unknown;
   for (const model of models) {
     try {
-      return await (PROVIDER === "firebase" ? viaFirebase(opts, model) : viaGenAI(opts, model));
+      const call = PROVIDER === "firebase" ? viaFirebase(opts, model, timeoutMs) : viaGenAI(opts, model);
+      return await withTimeout(call, timeoutMs);
     } catch (e) {
       lastErr = e;
       if (!isRetryable(e)) throw e;
-      console.warn(`[ai] ${model} unavailable (rate limit/overload) — trying next model`);
+      cooldownUntil.set(model, Date.now() + COOLDOWN_MS);
+      console.warn(`[ai] ${model} unavailable (${String((e as Error)?.message ?? e).slice(0, 80)}) — trying next model`);
     }
   }
   throw lastErr;
 }
 
-/** 429 quota / 503 overload. In browsers a 429 often surfaces as a CORS "Failed to fetch". */
+const COOLDOWN_MS = 5 * 60_000;
+const cooldownUntil = new Map<string, number>();
+
+function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error(`timeout after ${ms}ms`)), ms);
+    p.then(
+      (v) => (clearTimeout(t), resolve(v)),
+      (e) => (clearTimeout(t), reject(e)),
+    );
+  });
+}
+
+/** 429 quota / 503 overload / timeouts. In browsers a 429 often surfaces as a CORS "Failed to fetch". */
 function isRetryable(e: unknown) {
   const msg = String((e as Error)?.message ?? e);
-  return /429|quota|RESOURCE_EXHAUSTED|503|overloaded|UNAVAILABLE|Failed to fetch|NetworkError/i.test(msg);
+  return /429|quota|RESOURCE_EXHAUSTED|503|overloaded|UNAVAILABLE|Failed to fetch|NetworkError|timeout|aborted|500|INTERNAL/i.test(msg);
 }
 
 export async function generateJSON<T>(opts: GenerateOptions & { jsonSchema: Record<string, unknown> }): Promise<T> {
@@ -66,17 +86,25 @@ function stripFences(s: string) {
   return s.replace(/^\s*```(?:json)?/i, "").replace(/```\s*$/, "").trim();
 }
 
-async function viaFirebase({ system, contents, jsonSchema, temperature = 0.3 }: GenerateOptions, modelName: string) {
+async function viaFirebase(
+  { system, contents, jsonSchema, temperature = 0.3 }: GenerateOptions,
+  modelName: string,
+  timeoutMs: number,
+) {
   const { getAI, getGenerativeModel, GoogleAIBackend } = await import("firebase/ai");
   const ai = getAI(getFirebaseApp()!, { backend: new GoogleAIBackend() });
-  const model = getGenerativeModel(ai, {
-    model: modelName,
-    systemInstruction: system,
-    generationConfig: {
-      temperature,
-      ...(jsonSchema ? { responseMimeType: "application/json", responseJsonSchema: jsonSchema } : {}),
+  const model = getGenerativeModel(
+    ai,
+    {
+      model: modelName,
+      systemInstruction: system,
+      generationConfig: {
+        temperature,
+        ...(jsonSchema ? { responseMimeType: "application/json", responseJsonSchema: jsonSchema } : {}),
+      },
     },
-  });
+    { timeout: timeoutMs },
+  );
   // firebase/ai v13 uses discriminated parts ({ type: "text" | "inlineData", ... })
   const fbContents = contents.map((c) => ({
     role: c.role,
